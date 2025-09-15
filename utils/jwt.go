@@ -2,12 +2,12 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Dummy value for now and will be removed
 const secretKey = "supersecret"
 
 func GenerateToken(email string, userId int64) (string, error) {
@@ -18,10 +18,9 @@ func GenerateToken(email string, userId int64) (string, error) {
 	})
 
 	return token.SignedString([]byte(secretKey))
-
 }
 
-func VerifyToken(token string) error {
+func VerifyToken(token string) (int64, error) {
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 
@@ -33,23 +32,23 @@ func VerifyToken(token string) error {
 	})
 
 	if err != nil {
-		return errors.New("Could not parse token")
+		fmt.Println("Could not parse token")
+		return 0, errors.New("Could not parse token.")
 	}
 
 	tokenIsValid := parsedToken.Valid
 
 	if !tokenIsValid {
-		return errors.New("Invalid token")
+		return 0, errors.New("Invalid token!")
 	}
 
-	// claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 
-	// if !ok {
-	// 	return errors.New("Invalid token claims")
-	// }
+	if !ok {
+		return 0, errors.New("Invalid token claims.")
+	}
 
 	// email := claims["email"].(string)
-	// userId := claims["userId"].(int64)
-	return nil
-
+	userId := int64(claims["userId"].(float64))
+	return userId, nil
 }
