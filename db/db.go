@@ -7,21 +7,22 @@ import (
 )
 
 var DB *sql.DB
-var err error
 
 func InitDB() {
+	var err error
 	DB, err = sql.Open("sqlite3", "api.db")
+
 	if err != nil {
-		panic("Could not connect to database")
+		panic("Could not connect to database.")
 	}
 
 	DB.SetMaxOpenConns(10)
 	DB.SetMaxIdleConns(5)
 
-	CreateTables()
+	createTables()
 }
 
-func CreateTables() {
+func createTables() {
 	createUsersTable := `
 	CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,7 +34,7 @@ func CreateTables() {
 	_, err := DB.Exec(createUsersTable)
 
 	if err != nil {
-		panic("Could not create user table.")
+		panic("Could not create users table.")
 	}
 
 	createEventsTable := `
@@ -47,9 +48,26 @@ func CreateTables() {
 		FOREIGN KEY(user_id) REFERENCES users(id)
 	)
 	`
+
 	_, err = DB.Exec(createEventsTable)
 
 	if err != nil {
-		panic("Could not create event table")
+		panic("Could not create events table.")
+	}
+
+	createRegistrationsTable := `
+	CREATE TABLE IF NOT EXISTS registrations (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		event_id INTEGER,
+		user_id INTEGER,
+		FOREIGN KEY(event_id) REFERENCES events(id),
+		FOREIGN KEY(user_id) REFERENCES users(id)
+	)
+	`
+
+	_, err = DB.Exec(createRegistrationsTable)
+
+	if err != nil {
+		panic("Could not create registrations table.")
 	}
 }
